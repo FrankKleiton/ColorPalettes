@@ -1,9 +1,10 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {View, StyleSheet, FlatList} from 'react-native';
+import {View, StyleSheet, FlatList, RefreshControl} from 'react-native';
 import PalettePreview from '../components/palette-preview';
 
 const Home = ({navigation}) => {
   const [colorPalettes, setColorPalettes] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handlePaletteFetching = useCallback(async () => {
     const response = await fetch(
@@ -20,6 +21,12 @@ const Home = ({navigation}) => {
     handlePaletteFetching();
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await handlePaletteFetching();
+    setIsRefreshing(false);
+  });
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -33,6 +40,8 @@ const Home = ({navigation}) => {
           />
         )}
         keyExtractor={(item) => item.id.toString()}
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
       />
     </View>
   );
