@@ -1,10 +1,11 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {View, StyleSheet, FlatList, RefreshControl} from 'react-native';
+import {View, StyleSheet, FlatList, TouchableOpacity, Text} from 'react-native';
 import PalettePreview from '../components/palette-preview';
 
-const Home = ({navigation}) => {
+const Home = ({navigation, route}) => {
   const [colorPalettes, setColorPalettes] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const newColorPalette = route.params ? route.params.newColorPalette : undefined;
 
   const handlePaletteFetching = useCallback(async () => {
     const response = await fetch(
@@ -20,6 +21,15 @@ const Home = ({navigation}) => {
   useEffect(() => {
     handlePaletteFetching();
   }, []);
+
+  useEffect(() => {
+    if (newColorPalette) {
+      setColorPalettes([{
+        paletteName: newColorPalette.name,
+        colors: newColorPalette.colors
+      }, ...colorPalettes]);
+    }
+  }, [newColorPalette]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -39,9 +49,14 @@ const Home = ({navigation}) => {
             }}
           />
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.paletteName}
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
+        ListHeaderComponent={
+          <TouchableOpacity style={{ marginBottom: 10 }} onPress={() => navigation.navigate('AddNewPalette')}>
+            <Text style={styles.button}>Add a color scheme</Text>
+          </TouchableOpacity>
+        }
       />
     </View>
   );
@@ -53,6 +68,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
+  button: {
+    fontSize: 18,
+    color: '#007676',
+    fontWeight: 'bold',
+    marginTop: 5,
+  }
 });
 
 export default Home;
